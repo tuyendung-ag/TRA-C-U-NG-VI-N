@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ANT Talent Hub - Tra cứu CV theo phòng ban</title>
+<style>
+:root{
+  --primary:#1769e8; --primary-soft:#edf4ff;
+  --green:#079455; --green-soft:#eaf8f1;
+  --red:#d92d20; --red-soft:#fff0ef;
+  --orange:#dc6803; --orange-soft:#fff4e5;
+  --purple:#6938ef; --purple-soft:#f1edff;
+  --text:#101828; --muted:#667085; --border:#e4e7ec;
+  --bg:#f6f8fc; --white:#fff;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}
+.app{display:grid;grid-template-columns:230px 1fr;min-height:100vh}
+.sidebar{background:#fff;border-right:1px solid var(--border);padding:22px 14px}
+.brand{display:flex;gap:11px;align-items:center;padding:0 6px 20px;border-bottom:1px solid var(--border);margin-bottom:18px}
+.logo{width:44px;height:44px;border-radius:13px;background:linear-gradient(135deg,#3286f5,#155ecf);display:grid;place-items:center;color:#fff;font-weight:800;box-shadow:0 8px 18px rgba(23,105,232,.25)}
+.brand b{font-size:15px}
+.brand small{display:block;color:#667085;font-size:9px;letter-spacing:1.2px;margin-top:2px}
+.menu-label{font-size:9px;color:#98a2b3;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:0 10px 8px}
+.menu-item,.menu-parent{height:46px;width:100%;border:0;background:transparent;border-radius:11px;display:flex;align-items:center;gap:11px;padding:0 13px;color:#344054;font-weight:600;cursor:pointer;text-align:left}
+.menu-item:hover,.menu-parent:hover{background:#eef4ff;color:var(--primary)}
+.menu-parent.active{background:linear-gradient(135deg,#2f80ed,#1769e8);color:#fff}
+.submenu{margin:6px 0 8px 22px;padding-left:12px;border-left:1px solid #dce3ec}
+.submenu button{width:100%;border:0;background:transparent;text-align:left;padding:9px 10px;border-radius:8px;color:#475467;cursor:pointer;font-size:12px}
+.submenu button:hover,.submenu button.active{background:#eef4ff;color:#1769e8;font-weight:700}
+.main{padding:28px}
+.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}
+h1{font-size:28px;margin:0 0 6px}.sub{color:#667085;font-size:13px}
+.department-pill{background:#edf4ff;color:#1769e8;border:1px solid #cfe0ff;padding:8px 12px;border-radius:999px;font-weight:700;font-size:12px}
+.panel{background:#fff;border:1px solid var(--border);border-radius:15px;box-shadow:0 8px 22px rgba(16,24,40,.04);padding:18px;margin-bottom:18px}
+.filters{display:grid;grid-template-columns:1.2fr .85fr .85fr auto;gap:12px;align-items:end}
+.field label{display:block;font-size:10px;font-weight:700;color:#667085;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+input,select{width:100%;height:44px;border:1px solid #d0d5dd;border-radius:10px;padding:0 12px;background:#fff;color:#344054;outline:none}
+input:focus,select:focus{border-color:#1769e8;box-shadow:0 0 0 3px rgba(23,105,232,.08)}
+.search-btn{height:44px;border:0;border-radius:10px;background:#1769e8;color:#fff;font-weight:700;padding:0 20px;cursor:pointer;box-shadow:0 7px 15px rgba(23,105,232,.18)}
+.summary{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;color:#667085;font-size:12px}
+.summary strong{color:#101828}
+.table-wrap{overflow:auto;border:1px solid var(--border);border-radius:12px}
+table{width:100%;border-collapse:collapse;min-width:1080px}
+th{background:#f8fafc;color:#475467;font-size:10px;text-transform:uppercase;letter-spacing:.35px;text-align:left;padding:11px 12px;border-bottom:1px solid var(--border)}
+td{padding:12px;border-bottom:1px solid var(--border);font-size:12px;color:#344054;vertical-align:middle}
+tr:last-child td{border-bottom:0}
+.name{font-weight:700;color:#101828}
+.link-btn{display:inline-flex;align-items:center;gap:5px;text-decoration:none;color:#1769e8;background:#edf4ff;border-radius:8px;padding:7px 9px;font-weight:700;font-size:11px}
+.link-btn.orange{color:#dc6803;background:#fff4e5}
+.criteria{min-width:145px;height:36px;border-radius:8px;font-size:11px;font-weight:700}
+.criteria.pass{background:#eaf8f1;color:#067647;border-color:#b7ebd1}
+.criteria.fail{background:#fff0ef;color:#b42318;border-color:#f7c1bc}
+.criteria.pending{background:#f2f4f7;color:#667085}
+.note-cell{min-width:270px}
+.note-wrap{display:flex;gap:8px}
+.note-input{height:36px;min-width:200px;font-size:11px}
+.save-btn{height:36px;border:0;border-radius:8px;background:#101828;color:white;padding:0 12px;font-size:11px;font-weight:700;cursor:pointer}
+.toast{position:fixed;right:24px;bottom:24px;background:#101828;color:white;padding:12px 15px;border-radius:10px;display:none;box-shadow:0 10px 24px rgba(0,0,0,.18);font-size:12px}
+@media(max-width:900px){.app{grid-template-columns:1fr}.sidebar{display:none}.filters{grid-template-columns:1fr 1fr}.search-btn{grid-column:1/-1}.main{padding:16px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><div class="logo">ANT</div><div><b>Talent Hub</b><small>RECRUITMENT SYSTEM</small></div></div>
+    <div class="menu-label">Danh mục</div>
+    <button class="menu-item">⌂ <span>Tổng quan</span></button>
+    <button class="menu-item">⌕ <span>Tra cứu ứng viên</span></button>
+    <button class="menu-item">▣ <span>Lịch phỏng vấn</span></button>
+    <button class="menu-parent active">▦ <span>Tra cứu CV theo phòng ban</span></button>
+    <div class="submenu">
+      <button class="active" onclick="pickDept('Phòng IT', this)">Phòng IT</button>
+      <button onclick="pickDept('HCNS', this)">HCNS</button>
+      <button onclick="pickDept('Phòng KD AM1', this)">Phòng KD AM1</button>
+      <button onclick="pickDept('Phòng KD AM2', this)">Phòng KD AM2</button>
+      <button onclick="pickDept('Ban Giám Đốc', this)">Ban Giám Đốc</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="header">
+      <div>
+        <h1>Tra cứu CV theo phòng ban</h1>
+        <div class="sub">Lọc hồ sơ theo phòng ban, vị trí và khoảng ngày tiếp nhận CV.</div>
+      </div>
+      <div class="department-pill" id="deptPill">Phòng IT</div>
+    </div>
+
+    <div class="panel">
+      <div class="filters">
+        <div class="field">
+          <label>Vị trí ứng tuyển</label>
+          <select id="position">
+            <option>Tất cả vị trí</option>
+            <option>Backend Developer</option>
+            <option>Frontend Developer</option>
+            <option>IT Support</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Từ ngày</label>
+          <input type="date" id="fromDate" value="2026-08-01">
+        </div>
+        <div class="field">
+          <label>Đến ngày</label>
+          <input type="date" id="toDate" value="2026-08-12">
+        </div>
+        <button class="search-btn" onclick="runSearch()">Tìm kiếm</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="summary">
+        <span>Tìm thấy <strong id="count">5 hồ sơ</strong></span>
+        <span id="filterText">Phòng IT · 01/08/2026 - 12/08/2026</span>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Họ tên</th>
+              <th>Link CV</th>
+              <th>Link sản phẩm</th>
+              <th>Tiêu chí</th>
+              <th>Ghi chú</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><div class="name">Nguyễn Văn Nam</div><div style="color:#667085;font-size:11px">Backend Developer</div></td>
+              <td><a class="link-btn" href="#" onclick="return false">Xem CV ↗</a></td>
+              <td><a class="link-btn orange" href="#" onclick="return false">Portfolio ↗</a></td>
+              <td>
+                <select class="criteria pass" onchange="criteriaColor(this)">
+                  <option selected>ĐẠT</option><option>Không ĐẠT</option><option>Chưa đánh giá</option>
+                </select>
+              </td>
+              <td class="note-cell"><div class="note-wrap"><input class="note-input" placeholder="Nhập ghi chú..." value="Kỹ năng phù hợp"><button class="save-btn" onclick="saveNote()">Lưu</button></div></td>
+            </tr>
+            <tr>
+              <td><div class="name">Trần Minh Hoàng</div><div style="color:#667085;font-size:11px">Backend Developer</div></td>
+              <td><a class="link-btn" href="#" onclick="return false">Xem CV ↗</a></td>
+              <td><span style="color:#98a2b3">Chưa có</span></td>
+              <td>
+                <select class="criteria fail" onchange="criteriaColor(this)">
+                  <option>ĐẠT</option><option selected>Không ĐẠT</option><option>Chưa đánh giá</option>
+                </select>
+              </td>
+              <td class="note-cell"><div class="note-wrap"><input class="note-input" placeholder="Nhập ghi chú..." value="Thiếu kinh nghiệm"><button class="save-btn" onclick="saveNote()">Lưu</button></div></td>
+            </tr>
+            <tr>
+              <td><div class="name">Lê Thu Trang</div><div style="color:#667085;font-size:11px">Frontend Developer</div></td>
+              <td><a class="link-btn" href="#" onclick="return false">Xem CV ↗</a></td>
+              <td><a class="link-btn orange" href="#" onclick="return false">Portfolio ↗</a></td>
+              <td>
+                <select class="criteria pending" onchange="criteriaColor(this)">
+                  <option>ĐẠT</option><option>Không ĐẠT</option><option selected>Chưa đánh giá</option>
+                </select>
+              </td>
+              <td class="note-cell"><div class="note-wrap"><input class="note-input" placeholder="Nhập ghi chú..."><button class="save-btn" onclick="saveNote()">Lưu</button></div></td>
+            </tr>
+            <tr>
+              <td><div class="name">Phạm Đức Anh</div><div style="color:#667085;font-size:11px">IT Support</div></td>
+              <td><a class="link-btn" href="#" onclick="return false">Xem CV ↗</a></td>
+              <td><span style="color:#98a2b3">Chưa có</span></td>
+              <td>
+                <select class="criteria pass" onchange="criteriaColor(this)">
+                  <option selected>ĐẠT</option><option>Không ĐẠT</option><option>Chưa đánh giá</option>
+                </select>
+              </td>
+              <td class="note-cell"><div class="note-wrap"><input class="note-input" placeholder="Nhập ghi chú..." value="Có thể hẹn PV"><button class="save-btn" onclick="saveNote()">Lưu</button></div></td>
+            </tr>
+            <tr>
+              <td><div class="name">Vũ Ngọc Linh</div><div style="color:#667085;font-size:11px">Frontend Developer</div></td>
+              <td><a class="link-btn" href="#" onclick="return false">Xem CV ↗</a></td>
+              <td><a class="link-btn orange" href="#" onclick="return false">Portfolio ↗</a></td>
+              <td>
+                <select class="criteria fail" onchange="criteriaColor(this)">
+                  <option>ĐẠT</option><option selected>Không ĐẠT</option><option>Chưa đánh giá</option>
+                </select>
+              </td>
+              <td class="note-cell"><div class="note-wrap"><input class="note-input" placeholder="Nhập ghi chú..."><button class="save-btn" onclick="saveNote()">Lưu</button></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast">Đã lưu thay đổi vào bản xem trước.</div>
+
+<script>
+const positionsByDept = {
+  "Phòng IT":["Tất cả vị trí","Backend Developer","Frontend Developer","IT Support"],
+  "HCNS":["Tất cả vị trí","TTS Tuyển dụng","Chuyên viên HCNS","HR Executive"],
+  "Phòng KD AM1":["Tất cả vị trí","Sales Executive","Account Manager"],
+  "Phòng KD AM2":["Tất cả vị trí","SEO MKT","Account Executive"],
+  "Ban Giám Đốc":["Tất cả vị trí","Trợ lý","Graphic Design ANT EDU"]
+};
+function pickDept(name, el){
+  document.querySelectorAll('.submenu button').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('deptPill').textContent=name;
+  const s=document.getElementById('position');
+  s.innerHTML=positionsByDept[name].map(x=>`<option>${x}</option>`).join('');
+}
+function criteriaColor(el){
+  el.classList.remove('pass','fail','pending');
+  if(el.value==='ĐẠT') el.classList.add('pass');
+  else if(el.value==='Không ĐẠT') el.classList.add('fail');
+  else el.classList.add('pending');
+  showToast('Đã thay đổi Tiêu chí (bản xem trước).');
+}
+function saveNote(){ showToast('Đã lưu ghi chú (bản xem trước).'); }
+function showToast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.style.display='block';
+  clearTimeout(window.__t); window.__t=setTimeout(()=>t.style.display='none',1800);
+}
+function runSearch(){
+  const d=document.getElementById('deptPill').textContent;
+  const p=document.getElementById('position').value;
+  const f=document.getElementById('fromDate').value.split('-').reverse().join('/');
+  const t=document.getElementById('toDate').value.split('-').reverse().join('/');
+  document.getElementById('filterText').textContent=`${d} · ${p} · ${f} - ${t}`;
+  showToast('Đã lọc dữ liệu mẫu.');
+}
+</script>
+</body>
+</html>
